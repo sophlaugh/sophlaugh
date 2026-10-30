@@ -1,3 +1,5 @@
+![Developer laboratory banner](assets/developer-banner.svg)
+
 <div align="center">
 
 # Dr. Sophy M. Laughing
