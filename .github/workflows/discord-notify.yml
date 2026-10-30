@@ -1,0 +1,31 @@
+name: Optional Discord profile notifications
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [README.md, docs/**, CONTRIBUTING.md]
+permissions:
+  contents: read
+jobs:
+  notify:
+    if: ${{ vars.ENABLE_DISCORD_NOTIFICATIONS == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send public commit notice
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+          if not webhook:
+              print("Discord webhook not configured; skipped")
+              raise SystemExit(0)
+          payload = json.dumps({"content": f"Developer hub updated: {os.environ['REPO']}\n{os.environ['URL']}"}).encode()
+          request = urllib.request.Request(webhook, data=payload, headers={"Content-Type": "application/json", "User-Agent": "developer-hub-notifier"}, method="POST")
+          with urllib.request.urlopen(request, timeout=15) as response:
+              print(f"Discord status: {response.status}")
+          PY
