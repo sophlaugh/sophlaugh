@@ -1,0 +1,25 @@
+name: Refresh public projects
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * *'
+permissions:
+  contents: read
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate project feed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/update_projects.py
+      - name: Upload candidate when feed changed
+        uses: actions/upload-artifact@v4
+        with:
+          name: proposed-profile-readme
+          path: README.md
+          retention-days: 7
